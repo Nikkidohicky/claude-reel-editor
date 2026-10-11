@@ -324,7 +324,7 @@ function box(g, label) {
   const [x, y, w, h] = g.place || [90, 200, 900, 500];
   const el = document.createElement("div"); el.className = "gbox";
   Object.assign(el.style, { left: x / 10.8 + "%", top: y / 19.2 + "%", width: w / 10.8 + "%", height: h / 19.2 + "%" });
-  if (g.imgUrl) el.style.backgroundImage = `linear-gradient(rgba(237,132,176,.15),rgba(237,132,176,.15)),url(${g.imgUrl})`;
+  if (g.imgUrl) el.style.backgroundImage = `linear-gradient(rgba(237,132,176,.15),rgba(237,132,176,.15)),url(${JSON.stringify(g.imgUrl)})`;
   if (label) el.textContent = g.kind;
   return el;
 }
@@ -427,7 +427,7 @@ function renderGraphics() {
     const st = (S.board[g.id] || {}).state || "k"; n[st]++;
     const el = document.createElement("div"); el.className = "card" + (st === "d" ? " dropped" : ""); el.dataset.id = g.id;
     const th = document.createElement("div");
-    const tb = document.createElement("div"); tb.className = "thumb"; if (g.thumbUrl) tb.style.backgroundImage = `url(${g.thumbUrl})`;
+    const tb = document.createElement("div"); tb.className = "thumb"; if (g.thumbUrl) tb.style.backgroundImage = `url(${JSON.stringify(g.thumbUrl)})`;
     tb.appendChild(box_(g)); const ap = document.createElement("div"); ap.className = "approx"; ap.textContent = "Approx. layout";
     th.append(tb, ap);
     const body = document.createElement("div");

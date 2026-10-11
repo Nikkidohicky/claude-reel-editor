@@ -39,6 +39,6 @@ if kept / speed > brand.get("max_seconds", 60):
 
 subprocess.run(["nice", "-n", "15", "ffmpeg", "-y", "-v", "error", "-stats", "-i", str(src), "-i", str(audio),
                 "-filter_complex_script", str(script), "-map", "[vout]", "-map", "[aout]",
-                *(["-c:v", "h264_videotoolbox", "-b:v", "12M"] if os.environ.get("REEL_PREVIEW") else ["-c:v", "libx264", "-preset", "medium", "-crf", "16"]), "-pix_fmt", "yuv420p",
+                *((["-c:v", "h264_videotoolbox", "-b:v", "12M"] if sys.platform == "darwin" else ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20"]) if os.environ.get("REEL_PREVIEW") else ["-c:v", "libx264", "-preset", "medium", "-crf", "16"]), "-pix_fmt", "yuv420p",
                 "-c:a", "aac", "-b:a", "256k", "-movflags", "+faststart", str(reel / "master.mp4")], check=True)
 print(reel / "master.mp4")

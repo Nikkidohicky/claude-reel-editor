@@ -23,17 +23,17 @@ before step 5, you approve everything on a review page, so nothing renders until
 
 ## the four decisions that matter most
 
-**1. claude fills in a template, it doesn't design each reel.**
+**1. claude fills in a template instead of designing each reel.**
 my first version had claude design every graphic from scratch. it looked good, and it took over an hour per reel and cooked my laptop. now the look lives in one template, and claude only decides which word gets highlighted and which graphic goes where. that took a reel from 85 minutes down to about 4.
 
-**2. your brand lives in a file, not in your head.**
+**2. your brand lives in a file.**
 the first time you run it, it interviews you (colours, fonts, caption style, sounds) and saves the answers in `brand.md` and `brand.json`. every reel reads that file. when you correct something ("never outline the captions"), it goes in the file, so you only say it once.
 
 **3. you approve before anything renders.**
 rendering video is the slow, hot part. so you review the cuts, the graphics and the captions on a page first, watch a live rough cut, and only then build a preview.
 
 **4. one timing engine, shared.**
-the review page and the renderer use the same little file (`review/core.js`) to work out where everything lands after the cuts. that's why what you approve is what you get.
+the review page and the renderer use the same little file (`review/core.js`) to work out where everything lands after the cuts, so the edit you approve is the edit that renders.
 
 ---
 
@@ -92,9 +92,9 @@ turn everything we built into a claude code skill with a SKILL.md, so next time 
 
 ## what it costs
 
-- **claude:** a paid plan (pro or higher). a reel uses a chunk of your session; i'm on max.
+- **claude:** a paid plan (pro or higher). a reel uses a chunk of your session.
 - **everything else is free:** ffmpeg, hyperframes, whisper, deepfilternet (noise removal).
-- **optional:** elevenlabs for more precise word timing (a few dollars of credit goes a long way), and a free capcut account for an editable capcut version (not available in the us or india yet).
+- **optional:** elevenlabs for more precise word timing (a few dollars of credit), and a free capcut account for an editable capcut version (not available in the us or india yet).
 
 ---
 

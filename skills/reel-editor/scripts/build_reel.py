@@ -111,7 +111,11 @@ def sfx(name, t, db=-12, level="subtle", dur=None):
     """Subtle, ASMR-clean accents: every effect sits 10-15 dB under the voice (db = level relative to full scale).
     level = lowest brand sfx setting that still plays it. CapCut route: recorded for CapCut's real library sounds."""
     global n_sfx
+    global CARD_SFX
     if CARD_MUTE: return                                  # this graphic's sound was switched off in the review
+    if CARD_SFX and level == "subtle":                    # the sound approved in the review replaces the entrance sound
+        name, db = {"sparkle": "chime"}.get(CARD_SFX["name"], CARD_SFX["name"]) if not CAPCUT else CARD_SFX["name"], CARD_SFX.get("db", db)
+        CARD_SFX = None
     if brand.get("sfx", "subtle") == "none" or (level == "lots" and brand.get("sfx") != "lots") or t >= DUR: return
     vol = round(min(1.0, 10 ** ((db + brand.get("sfx_gain_db", 8)) / 20)), 3)   # +8 dB: clearly audible under a voice with no music bed
     if CAPCUT:
@@ -124,6 +128,7 @@ def sfx(name, t, db=-12, level="subtle", dur=None):
                  f'data-track-index="{20 + n_sfx}" data-volume="{vol}"></audio>')
 SFX_OUT = []
 CARD_MUTE = False
+CARD_SFX = None
 def show(sel, a, b, fade=0.18):
     b = max(b, a + 0.12); fade = min(fade, (b - a) / 2)              # very short words: keep the fade after the reveal
     js.append(f'tl.set("{sel}",{{autoAlpha:1}},{q(a)});tl.to("{sel}",{{autoAlpha:0,duration:{fade}}},{q(b - fade)});')
@@ -144,6 +149,7 @@ def phrase_end(t):
 quiet = []                                      # spans where a card carries its own words, so captions step aside
 for i, c in enumerate(edit.get("cards", [])):
     CARD_MUTE = c.get("sfx") is False
+    CARD_SFX = c.get("sfx") if isinstance(c.get("sfx"), dict) else None
     a, b, cid = c["start"], c.get("end") or phrase_end(c["start"]), f"k{i}"
     b = min(b, DUR)
     kind = c["type"]

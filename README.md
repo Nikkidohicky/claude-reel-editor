@@ -88,7 +88,7 @@ everything about how your reels look lives in two files in `~/reels/`:
 - `brand.md`: your style in plain english (claude reads this)
 - `brand.json`: the numbers (the scripts read this)
 
-edit them any time, or just tell claude "never use outlined captions again" and it adds that to your rules. want to see a filled-in one? [`examples/getgitgirl/`](examples/getgitgirl/) is mine.
+edit them any time, or just tell claude "never use outlined captions again" and it adds that to your rules. [`examples/getgitgirl/`](examples/getgitgirl/) is mine, if you want to see a filled-in one.
 
 ## what it can't do yet
 

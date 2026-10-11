@@ -82,7 +82,7 @@
       const a = firstKeptFrom(g.w0);
       if (a === null) return { ...g, state, gone: true };
       let endSrc;
-      if (g.w1 != null) endSrc = W[g.w1].e;
+      if (g.w1 != null && !P.removed(g.w1)) endSrc = W[g.w1].e;
       else { let k = a; while (k < W.length - 1 && !/[.,!?;:]$/.test(W[k].text) && W[k + 1].s - W[k].e < 0.35 && P.toCut(W[k].e) - P.toCut(W[a].s) < 4) k++; endSrc = W[k].e; }
       const start = P.toCut(W[a].s), end = Math.max(start + 1, P.toCut(endSrc) + 0.15);
       return { ...g, state, start, end: Math.min(end, P.cutDur), moved: a !== g.w0 };

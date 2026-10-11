@@ -60,7 +60,7 @@ when the check says **all set**, you're done with setup.
    everything saves as you go, and **undo** is there if you change your mind.
 6. press **build preview**, then type **"build preview"** in claude code. about 4 minutes later the draft shows up in the **preview** tab.
 7. watch it. if something's off, pause there, describe it, and press **add note at current time**. tell claude when you're done and it fixes those spots.
-8. happy? type **"final"**. your 4K reel lands in **movies → reels**. airdrop it to your phone and post.
+8. when you're happy, type **"final"**. your 4K reel lands in **movies → reels**. airdrop it to your phone and post.
 
 from the second reel on, it's just steps 1, 2, 3, then 5 to 8.
 

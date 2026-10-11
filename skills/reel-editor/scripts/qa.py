@@ -18,7 +18,7 @@ def probe(entries):
 info = probe("stream=width,height:format=duration")
 w, h = info["streams"][0]["width"], info["streams"][0]["height"]
 dur = float(info["format"]["duration"])
-want = brand.get("resolution", [1080, 1920])
+want = [1080, 1920] if os.environ.get("REEL_PREVIEW") else brand.get("resolution", [1080, 1920])
 print(f"size      {w}x{h}  (want {want[0]}x{want[1]})")
 if [w, h] != list(want): fails.append("size")
 print(f"length    {dur:.1f}s  (max {brand.get('max_seconds', 60)}s)")

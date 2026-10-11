@@ -16,10 +16,12 @@ HOME = Path(os.environ.get("REELS_HOME", "~/reels")).expanduser()
 norm = lambda s: re.sub(r"[^a-z0-9]", "", s.lower())
 
 def node(reel_json, decisions):
-    js = f"""const C=require({json.dumps(str(CORE))});const R={json.dumps(reel_json)};const D={json.dumps(decisions)};
+    # data goes in on stdin: long clips would overflow the command-line length limit
+    js = f"""const C=require({json.dumps(str(CORE))});const I=JSON.parse(require("fs").readFileSync(0,"utf8"));const R=I.r,D=I.d;
 const P=C.plan(R,D);process.stdout.write(JSON.stringify({{spans:P.spans,cutDur:P.cutDur,pauses:P.pauses,
 captions:C.captions(R,D,P),graphics:C.graphics(R,D,P),hash:C.hash(D)}}));"""
-    return json.loads(subprocess.run(["node", "-e", js], capture_output=True, text=True, check=True).stdout)
+    return json.loads(subprocess.run(["node", "-e", js], input=json.dumps({"r": reel_json, "d": decisions}),
+                                     capture_output=True, text=True, check=True).stdout)
 
 def export(reel, proposal, out):
     out.mkdir(parents=True, exist_ok=True)
@@ -53,7 +55,7 @@ def export(reel, proposal, out):
                     e = round(max(e, s + 0.25), 3)
                     for w in words:
                         if w["s"] < e - 0.05 and w["e"] > s + 0.05 and not w.get("filler"):
-                            if w["s"] >= s - 0.05: w["s"] = e            # word starts with the um: start after it
+                            if w["s"] >= s - 0.05: w["s"] = round(min(e, w["e"] - 0.05), 3)   # starts with the um: start after it
                             elif w["e"] <= e + 0.05: w["e"] = round(s, 3)  # word ends with the um: end before it
                     words.append({"text": "um", "s": round(s, 3), "e": e, "filler": True})
         words.sort(key=lambda w: w["s"])
@@ -103,8 +105,8 @@ def do_import(reel, review):
     d = json.load(open(review)) if Path(review).exists() else {}
     # same defaults as the page's blank() + decisions(), so the build's fingerprint matches what the page computes
     d = {"restoredFillers": [], "restoredPauses": [], "trimmedPauses": [], "board": {}, "sfxOff": {}, **d}
-    d["cut"] = d.get("cut") or reel_json["proposedCut"]
-    d["captions"] = d.get("captions") or reel_json["captions"]
+    if d.get("cut") is None: d["cut"] = reel_json["proposedCut"]          # [] is a real decision ("cut nothing"), not "unset"
+    if d.get("captions") is None: d["captions"] = reel_json["captions"]
     P = node(reel_json, d)
     json.dump({"source": "raw.mov", "audio": "voice.wav", "keep": [[round(a, 3), round(b, 3)] for a, b in P["spans"]]},
               open(reel / "edl.json", "w"))
@@ -116,7 +118,7 @@ def do_import(reel, review):
         if g.get("gone") or g["state"] == "d": continue
         note = ((d.get("board") or {}).get(g["id"]) or {}).get("note")
         if g["state"] == "c": changes.append(f"{g['id']} @ cut {g['start']:.1f}s: {note or '(no note)'}")
-        spec = {k: v for k, v in g.items() if k not in ("id", "kind", "what", "w0", "w1", "state", "place", "sfx", "moved", "gone")}
+        spec = {k: v for k, v in g.items() if k not in ("id", "kind", "what", "w0", "w1", "state", "place", "moved", "gone")}
         spec.update(start=round(g["start"], 3), end=round(g["end"], 3), id=g["id"])
         if g["id"] in (d.get("sfxOff") or {}) and d["sfxOff"][g["id"]]: spec["sfx"] = False
         cards.append(spec)

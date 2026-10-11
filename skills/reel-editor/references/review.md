@@ -12,7 +12,7 @@ A private page on the person's claude.ai account where they approve the edit bef
    - `audio_original.mp4` / `audio_cleaned.mp4` (same 10 s), `colour_before.jpg` / `colour_after.jpg` (same frame, grade applied), `sfx_<name>.mp4` for each sound
    - the brand's caption fonts (.otf/.ttf/.woff2) **only if the person owns them and the page stays private**
    Asset uploads accept mp4 (audio too), jpg/png, fonts; not m4a or wav.
-4. First time only: publish `review/reel-review.html` with `files: {"core.js": "review/core.js"}`, `capabilities: {"db": {}, "assets": {}}`, `icon: "video"`. Later reels reuse the same page URL.
+4. First time only: publish `review/reel-review.html` with `files: {"core.js": "review/core.js"}`, `capabilities: {"db": {"rules": [{"path": "reel", "write": "admin"}, {"path": "builds", "write": "admin"}]}, "assets": {}}` (only editors can change the reel data and the preview; anyone you share it with at Contributor level can still record review decisions), `icon: "video"`. Later reels reuse the same page URL.
 5. Upload the assets to the page (`asset: true`, up to 25 per call), then write `reel/current` = `reel.json` plus `srcUrl`, per-graphic `thumbUrl`/`imgUrl`, `assets` {audioOriginal, audioCleaned, colourBefore, colourAfter, sfx{name:url}}, `fonts` {body, accent}. Delete `review/current` and `builds/latest` from the previous reel (ask first if they hold notes).
 6. Send the link. Tell them: tap words to cut, tap ⏸ / grey "um"s to keep them, Play rough cut to watch the live cut, then Build preview.
 
