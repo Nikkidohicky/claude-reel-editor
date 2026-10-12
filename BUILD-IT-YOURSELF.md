@@ -12,7 +12,7 @@ a reel goes through six steps. each one is a small script that claude runs for y
 
 1. **listen.** it writes down every word you said and when you said it (the transcript).
 2. **clean the sound.** it takes out background noise, softens harsh "s" sounds, and makes your voice the volume instagram expects.
-3. **cut.** it suggests which lines to cut, then removes every "um" and long pause inside the lines you keep.
+3. **cut.** it suggests which lines to cut, then removes the "um"s and long pauses inside the lines you keep. how hard it trims is your pacing choice (natural, tight or fast).
 4. **add graphics and captions.** it fills in a ready-made template in your brand: captions, website screenshots, a carousel, stickers, a list card.
 5. **render.** it turns all of that into a video file.
 6. **check.** it measures the loudness, looks for text running off the edge, and makes sure no words got clipped.

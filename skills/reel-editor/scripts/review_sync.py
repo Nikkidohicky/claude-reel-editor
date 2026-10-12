@@ -9,11 +9,17 @@ proposal.json (Claude writes this per reel):
    "cards": [{"id","type","kind","what","anchor":"word","after":srcSec,"end_anchor"?,"place":[x,y,w,h], "sfx":{"name","db"}, ...build_reel fields}]}"""
 import json, os, re, shutil, subprocess, sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pacing import pacing
 
 HERE = Path(__file__).resolve().parent
 CORE = HERE.parent / "review" / "core.js"
 HOME = Path(os.environ.get("REELS_HOME", "~/reels")).expanduser()
 norm = lambda s: re.sub(r"[^a-z0-9]", "", s.lower())
+
+def raw_clip(reel):   # the raw clip's name keeps its extension (raw.mov from an iPhone, raw.mp4 from Android)
+    return next(iter(sorted(reel.glob("raw.*"))), reel / "raw.mov")
+
 
 def node(reel_json, decisions):
     # data goes in on stdin: long clips would overflow the command-line length limit
@@ -47,7 +53,7 @@ def export(reel, proposal, out):
     if fj.exists():
         for t in json.load(open(fj))["transcription"]:
             txt = t["text"].strip()
-            if norm(txt) in {"um", "uh", "umm", "uhm", "erm", "er", "ah"}:
+            if norm(txt) in set(pacing(brand)["fillers"]):
                 s, e = t["offsets"]["from"] / 1000, t["offsets"]["to"] / 1000
                 if not any(w["s"] < e - 0.05 and w["e"] > s + 0.05 for w in words):
                     words.append({"text": txt.strip(",.").lower(), "s": round(s, 3), "e": round(max(e, s + 0.25), 3), "filler": True})
@@ -86,8 +92,8 @@ def export(reel, proposal, out):
             if e: g["w1"] = e[0]
         board.append(g)
     reel_json = {"title": proposal["title"], "srcDur": float(subprocess.run(["ffprobe", "-v", "error", "-show_entries",
-                 "format=duration", "-of", "csv=p=0", str(reel / "raw.mov")], capture_output=True, text=True).stdout),
-                 "speed": brand.get("speed", 1.1), "words": words, "proposedCut": proposed_cut, "keepPauses": keep_pauses,
+                 "format=duration", "-of", "csv=p=0", str(raw_clip(reel))], capture_output=True, text=True).stdout),
+                 "speed": pacing(brand)["speed"], "pacing": pacing(brand), "words": words, "proposedCut": proposed_cut, "keepPauses": keep_pauses,
                  "captions": caps, "board": board,
                  "style": {"capSize": brand["captions"].get("size", 104), "capY": brand["captions"].get("y", 1250),
                            "mode": mode, "editorial": brand["captions"].get("style") == "editorial",
@@ -108,7 +114,7 @@ def do_import(reel, review):
     if d.get("cut") is None: d["cut"] = reel_json["proposedCut"]          # [] is a real decision ("cut nothing"), not "unset"
     if d.get("captions") is None: d["captions"] = reel_json["captions"]
     P = node(reel_json, d)
-    json.dump({"source": "raw.mov", "audio": "voice.wav", "keep": [[round(a, 3), round(b, 3)] for a, b in P["spans"]]},
+    json.dump({"source": raw_clip(reel).name, "audio": "voice.wav", "keep": [[round(a, 3), round(b, 3)] for a, b in P["spans"]]},
               open(reel / "edl.json", "w"))
     caps = [{"start": round(c["start"], 3), "end": round(c["end"], 3),
              "words": [{"text": re.sub(r"[.,!?;:]+$", "", w["text"]), "t": round(w["t"], 3), "accent": w["accent"]} for w in c["words"]]}

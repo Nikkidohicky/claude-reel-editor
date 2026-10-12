@@ -4,6 +4,8 @@
     2160,
     3840
   ],
+  "pacing": "tight",
+  "graphics": "busy",
   "speed": 1.1,
   "max_seconds": 60,
   "colors": {

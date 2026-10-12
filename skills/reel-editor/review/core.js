@@ -2,12 +2,12 @@
 // (scripts/review_sync.py, which runs this same file with node) both use it, so what you approve is what renders.
 // Times: "src" = seconds in the raw clip; "cut" = seconds in the finished reel (after cuts and speed-up).
 (function (root) {
-  const PAUSE = 0.25;   // a gap between kept words longer than this is a pause, trimmed unless restored
-  const PAD = 0.06;     // air kept either side of every edit so words never clip
+  // defaults (tight pacing) when a reel has no pacing: pause = gap between kept words over 0.25 s, 0.06 s air at every edit
 
   // decisions: {cut: [wordIdx...], restoredFillers: [wordIdx...], restoredPauses: [wordIdx...]}
   // A pause is keyed by the index of the word BEFORE it.
   function plan(reel, d) {
+    const PAUSE = (reel.pacing || {}).pause_min ?? 0.25, PAD = (reel.pacing || {}).air ?? 0.06;   // from brand pacing
     const W = reel.words, cut = new Set(d.cut || []);
     const fillerBack = new Set(d.restoredFillers || []), pauseBack = new Set(d.restoredPauses || []);
     const removed = i => cut.has(i) || (W[i].filler && !fillerBack.has(i));
@@ -96,6 +96,6 @@
     return (h >>> 0).toString(36);
   }
 
-  const api = { plan, captions, graphics, hash, PAUSE, PAD };
+  const api = { plan, captions, graphics, hash };
   if (typeof module !== "undefined") module.exports = api; else root.ReelCore = api;
 })(this);

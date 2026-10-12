@@ -4,16 +4,17 @@ Usage: python3 build_reel.py <reel-folder> [--capcut]
   --capcut  leave captions and sound effects out of the render and write captions.json + sfx.json for CapCut instead.
 
 edit.json (written by auto_edit.py, then Claude marks accents and adds cards):
-  captions: [{start, end, words: [{text, t, accent}]}]
-  punch:    [seconds]                       quick zoom-ins on the camera
+  captions: [{start, end, words: [{text, t, accent}], plain?}]   plain = basic white sans (a "before" look), not brand
+  punch:    [seconds | [seconds, scale]]    quick zoom-ins on the camera (alternate in/out; [t, 1.25] forces a level)
   cards:    [{type, start, end, ...}]       types:
      title  {text: "line one / line two"}            big headline in the space above the head (hook)
      block  {top: "don't", bottom: "worry"}          full brand-colour screen with the clip framed in it (reveal)
      card   {title: "my stack", rows: ["a","b"]}     white UI card, rows appear one by one (lists, steps, tools)
      tag    {text: "open source", y: 300}            small pill label that pops on (name drops)
      (every card: leave out "end" and it clears when the phrase it starts in finishes)
-     cta    {text: "comment EDIT"}                   bottom call-to-action pill; the CAPS word gets the pop colour
-     shot   {src: "shots/tool.png", label: "heyclicky.com"}   website screenshot in a browser window (make it with screenshot.sh)
+     cta    {text: "comment EDIT", y?: 1360}         call-to-action pill (kept above the bottom ~420 px IG covers); CAPS word = pop colour
+     shot   {src: "shots/tool.png", label: "heyclicky.com", y?: 130}   website screenshot in a browser window (make it with screenshot.sh);
+                                                     set y lower (e.g. 1000) when the face sits high in frame
      image  {src: ["a.png", "b.jpg"]}               1-3 images fanned out above the head (their own photos, screenshots, stock)
      sticker {src: "sticker.png", x: 760, y: 420, size: 260}  transparent PNG that bounces on (brand stickers, emoji, logos)
      page   {bg: "image.jpg" or "#hex", title: "how it works"}   full-screen background with the clip framed below it
@@ -134,8 +135,9 @@ def show(sel, a, b, fade=0.18):
     js.append(f'tl.set("{sel}",{{autoAlpha:1}},{q(a)});tl.to("{sel}",{{autoAlpha:0,duration:{fade}}},{q(b - fade)});')
 
 # ---- camera punch-ins ---------------------------------------------------------------------------------------------
-for k, t in enumerate(edit.get("punch", [])):
-    js.append(f'tl.to("#cam",{{scale:{1.0 if k % 2 else 1.07},duration:0.22,ease:"power3.out",overwrite:"auto"}},{q(t)});')
+for k, t in enumerate(edit.get("punch", [])):   # [t, scale] forces a zoom level (e.g. a spoken "zoom in")
+    t, z = t if isinstance(t, list) else (t, 1.0 if k % 2 else 1.07)
+    js.append(f'tl.to("#cam",{{scale:{z},duration:0.22,ease:"power3.out",overwrite:"auto"}},{q(t)});')
 
 # ---- cards --------------------------------------------------------------------------------------------------------
 # Phrases from the cut's transcript: a phrase ends at punctuation or a gap over 0.35 s. A card with no "end" clears
@@ -155,14 +157,15 @@ for i, c in enumerate(edit.get("cards", [])):
     kind = c["type"]
     if kind == "title":
         lines = [case(x.strip()) for x in c["text"].split("/")]
-        quiet.append((a, b))                                            # the hook says it: captions step aside
-        sizes = [fit(x, 230, 230 // 16) for x in lines]                # each line fitted on its own, outline included
+        if c.get("quiet", True): quiet.append((a, b))                    # the hook says it: captions step aside ("quiet": false keeps them)
+        sizes = [c.get("size") or fit(x, 230, 230 // 16) for x in lines]   # each line fitted on its own, outline included; "size" overrides (tight-tracked fonts fit bigger)
         ol = brand.get("title_outline", "#FFFFFF")                     # outline is for the hook title only, never captions
-        st = lambda px: f";-webkit-text-stroke:{max(6, px // 16)}px {ol};paint-order:stroke fill" if ol else ""
-        back.append(f'<div id="{cid}" class="title" style="{font("head", sizes[0])};top:{c.get("y", brand.get("title_y", 360))}px;color:{c.get("color", MAIN)}">'
+        olw = brand.get("title_outline_px")                            # fixed outline width (e.g. 2 for a faint hairline); default scales with size
+        st = lambda px: f";-webkit-text-stroke:{olw or max(6, px // 16)}px {ol};paint-order:stroke fill" if ol else ""
+        back.append(f'<div id="{cid}" class="title" style="{font("head", sizes[0])};top:{c.get("y", brand.get("title_y", 360))}px;color:{c.get("color", MAIN)};letter-spacing:{brand.get("title_tracking", -0.045)}em">'
                     + "".join(f'<div class="tl" style="font-size:{px}px;text-align:{("left", "right")[j % 2] if len(lines) > 1 else "center"}{st(px)}">{esc(x)}</div>' for j, (x, px) in enumerate(zip(lines, sizes))) + "</div>")
         show(f"#{cid}", a, b)
-        js.append(f'tl.fromTo("#{cid} .tl",{{clipPath:"inset(0% 100% 0% 0%)",x:-30}},{{clipPath:"inset(0% 0% 0% 0%)",x:0,duration:0.34,ease:"power3.out",stagger:0.25}},{q(a)});')
+        js.append(f'tl.fromTo("#{cid} .tl",{{clipPath:"inset(-40% 100% -40% 0%)",x:-30}},{{clipPath:"inset(-40% 0% -40% 0%)",x:0,duration:0.34,ease:"power3.out",stagger:0.25}},{q(a)});')
         sfx("snap", a + 0.03, -11)
     elif kind == "block":
         quiet.append((a, b))
@@ -195,12 +198,13 @@ for i, c in enumerate(edit.get("cards", [])):
         quiet.append((a, b))
         words = c["text"].split()
         inner = " ".join(f'<span style="color:{POP}">{esc(w)}</span>' if w.isupper() and len(w) > 1 else esc(case(w)) for w in words)
-        front.append(f'<div id="{cid}" class="ctaw"><span class="cta" style="{font("head", 78)};color:{MAIN};background:{LIGHT}">{inner}</span></div>')
+        front.append(f'<div id="{cid}" class="ctaw" style="top:{c.get("y", 1360)}px"><span class="cta" style="{font("head", 78)};color:{MAIN};background:{LIGHT}">{inner}</span></div>')
         show(f"#{cid}", a, b)
         js.append(f'tl.fromTo("#{cid} .cta",{{scale:0.5,y:60,opacity:0}},{{scale:1,y:0,opacity:1,duration:0.5,ease:"back.out(2.4)"}},{q(a)});')
         sfx("coin", a + 0.1, -12)
     elif kind == "shot":
-        front.append(f'<div id="{cid}" class="shot"><div class="bar"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i>'
+        if c.get("y", 130) + 700 > CAP_Y: quiet.append((a, b))         # screenshot covers the caption zone: captions step aside
+        front.append(f'<div id="{cid}" class="shot" style="top:{c.get("y", 130)}px"><div class="bar"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i>'
                      f'<span style="{font("body", 30)}">{esc(c.get("label", ""))}</span></div><div class="vp"><img src="{img(c["src"])}" /></div></div>')
         show(f"#{cid}", a, b)
         js.append(f'tl.fromTo("#{cid}",{{y:-200,scale:0.8,rotation:3}},{{y:0,scale:1,rotation:1.5,duration:0.55,ease:"back.out(1.5)"}},{q(a)});'
@@ -248,6 +252,7 @@ for i, c in enumerate(edit.get("cards", [])):
             vars_.setdefault("background", "transparent")
         x, y, bw, bh = c.get("box", [0, 160, W, int(W * nh / nw)])
         sc = bw / nw
+        if y + bh * 0.7 > CAP_Y: quiet.append((a, b))   # motion sits over the caption zone: captions step aside
         vals = html.escape(json.dumps(vars_), quote=True)
         mid.append(f'<div id="{cid}" class="clip" data-composition-id="{comp_id}" data-composition-src="{rel}" data-variable-values="{vals}" '
                    f'data-start="{q(a)}" data-duration="{q(b - a)}" data-track-index="{40 + i}" data-width="{nw}" data-height="{nh}" '
@@ -288,9 +293,13 @@ cap_json = []
 for i, c in enumerate(edit.get("captions", [])):
     if any(a - 0.05 <= c["start"] < b for a, b in quiet): continue
     ws = c["words"]
+    plain = c.get("plain")                                             # "before" captions: basic white sans, no brand styling
     cap_json.append({"start": c["start"], "end": c["end"], "over_light": False,
-                     "lines": [[{"text": case(w["text"]), "kind": "acc" if w.get("accent") else "big", "t": w["t"]} for w in ws]]})
+                     "lines": [[{"text": w["text"] if plain else case(w["text"]), "kind": "sm" if plain else "acc" if w.get("accent") else "big", "t": w["t"]} for w in ws]]})
     if CAPCUT: continue
+    if plain:
+        front.append(f'<div id="c{i}" class="cap" style="top:{CAP_Y}px;font-family:-apple-system,Helvetica,Arial,sans-serif;font-weight:500;font-size:46px;letter-spacing:0;color:#fff">{esc(" ".join(w["text"] for w in ws))}</div>')
+        show(f"#c{i}", c["start"], c["end"], 0.04); continue
     chars = sum(len(w["text"]) + 1 for w in ws)
     px = fit(" ".join(w["text"] for w in ws), CAP_PX * (1.35 if len(ws) == 1 else 1))
     big = 1.7 if CAPS.get("style") == "editorial" else 1.12          # editorial = dramatic size contrast on the emphasis word
@@ -298,7 +307,7 @@ for i, c in enumerate(edit.get("captions", [])):
     blk = "display:block;line-height:.95;" if CAPS.get("style") == "editorial" and len(ws) > 1 else ""
     spans = "".join(f'<span class="acc" style="{blk}{font("accent", int(px * big))};color:{CAP_ACC}">{esc(case(w["text"]))}</span> ' if w.get("accent")
                     else f'<span>{esc(case(w["text"]))}</span> ' for w in ws)
-    front.append(f'<div id="c{i}" class="cap" style="top:{CAP_Y}px;{font("body", int(px))};color:{CAP}">{spans.strip()}</div>')
+    front.append(f'<div id="c{i}" class="cap" style="top:{CAP_Y}px;{font("body", int(px))};color:{CAP};letter-spacing:{CAPS.get("tracking", -0.02)}em">{spans.strip()}</div>')
     show(f"#c{i}", c["start"], c["end"], 0.06)
     js.append(f'tl.fromTo("#c{i}",{{scale:0.86,y:14}},{{scale:1,y:0,duration:0.16,ease:"back.out(2)"}},{q(c["start"])});')
 
@@ -325,7 +334,7 @@ html, body {{ margin: 0; background: #000; overflow: hidden; }}
 .cr {{ display: flex; align-items: center; gap: 24px; height: 110px; margin: 0 36px; border-bottom: 3px solid rgba(0,0,0,.06); letter-spacing: -.02em; }}
 .cr b {{ width: 26px; height: 26px; border-radius: 50%; flex: none; }}
 .tagw, .ctaw {{ position: absolute; left: 0; right: 0; text-align: center; }}
-.ctaw {{ top: 1560px; }}
+.ctaw {{ top: 1360px; }}   /* above Instagram's caption + buttons zone (bottom ~420 px) */
 .tag, .cta {{ display: inline-block; color: #fff; padding: 18px 42px; border-radius: 80px; letter-spacing: -.02em; box-shadow: 0 14px 34px rgba(0,0,0,.2); }}
 .shot {{ position: absolute; left: 70px; top: 130px; width: 940px; border-radius: 26px; overflow: hidden; background: #fff; box-shadow: 0 34px 80px rgba(0,0,0,.3); }}
 .bar {{ height: 64px; display: flex; align-items: center; gap: 12px; padding: 0 24px; background: #F2F2F4; color: #555; }}

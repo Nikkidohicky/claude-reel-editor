@@ -12,7 +12,9 @@ edl = json.load(open(reel / "edl.json"))
 
 src, audio = reel / edl["source"], reel / edl.get("audio", "voice.wav")
 spans = edl["keep"]
-speed = float(brand.get("speed", 1.1))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pacing import pacing
+speed = pacing(brand)["speed"]
 w, h = brand.get("resolution", [1080, 1920])
 if os.environ.get("REEL_PREVIEW"): w, h = 1080, 1920          # previews cut at 1080p: a quarter of the work
 grade = brand.get("grade")
@@ -26,6 +28,9 @@ for k, (a, b) in enumerate(spans):
 n = len(spans)
 post = [f"setpts=PTS/{speed}", f"scale={w}:{h}:force_original_aspect_ratio=increase", f"crop={w}:{h}", "fps=30"]
 if grade:
+    if edl.get("grade_from") is not None:   # grade switches on at this reel second (a "before/after" moment)
+        # shortcut: splits filters on commas, so a filter option containing a comma breaks; quote-aware split if one ever does
+        grade = ",".join(f + (":" if "=" in f else "=") + f"enable='gte(t,{float(edl['grade_from']):.3f})'" for f in grade.split(","))
     post.insert(1, grade)
 vcat = "".join(f"[v{k}]" for k in range(n)) + f"concat=n={n}:v=1:a=0," + ",".join(post) + "[vout]"
 acat = "".join(f"[a{k}]" for k in range(n)) + f"concat=n={n}:v=0:a=1,atempo={speed}[aout]"

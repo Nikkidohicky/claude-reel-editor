@@ -1,6 +1,6 @@
 # claude reel editor
 
-you drop a raw talking-head clip into claude code and get back a finished reel in your own brand, so the audio's cleaned up, the filler words are cut, and the captions and graphics actually match what you're saying. if you want, it also builds an editable capcut version so you can still change anything you don't love.
+you drop a raw talking-head clip into claude code and get back a finished reel in your own brand, so the audio's cleaned up, the filler words are cut, and the captions and graphics actually match what you're saying. if you want, it also builds a capcut draft where you can change the captions and sounds yourself (the graphics come baked into the video, more on that below).
 
 the first time you use it, it asks you about your brand (your colours, fonts, caption style, sounds and the call to action you always use) and saves that as a brand file, so every edit after that looks like you.
 
@@ -10,8 +10,8 @@ made by [@getgitgirl](https://instagram.com/getgitgirl).
 
 ## what you need
 
-- a mac (windows should work but i haven't tested it yet)
-- [claude code](https://claude.com/claude-code) on a paid claude plan
+- a mac (that's what i've tested on, windows and linux are untested)
+- [claude code](https://claude.com/claude-code) on a paid claude plan. the review page uses claude code's artifacts, and if your version doesn't have them claude just does the review with you in chat instead
 - about 10 GB of free disk space
 - optional: a free capcut account, for the editable capcut version
 
@@ -53,7 +53,7 @@ bash ~/.claude/skills/reel-editor/scripts/doctor.sh
    - fix caption wording, pick the highlight words, merge captions
    - hear the sound clean-up and see the colour grade before and after
 5. hit **build preview**, tell claude "build preview", and watch the draft (about 4 minutes)
-6. leave notes at exact moments in the draft, then say "final" for the 4K version (and a capcut link, if you turned that on)
+6. leave notes at exact moments in the draft, then say "final" for the full-quality version at the resolution you picked in setup (and a capcut link, if you turned that on). 4K only looks sharper if you filmed in 4K, a 1080p clip doesn't gain detail
 
 nothing renders until you've approved it, so your laptop isn't rendering versions you don't want.
 
@@ -69,6 +69,12 @@ capcut lets you tweak the captions and sounds yourself after the edit, but it do
 
 if it doesn't work where you are, you still get the full finished reel as an mp4.
 
+what you can change in the capcut draft, and what you can't:
+
+- **editable:** the captions (words, timing, style) and the sound effects
+- **baked into the video:** the graphics, screenshots, carousels and the hook title. change those on the review page before you build, not in capcut
+- **swapped:** capcut can only use fonts from its own library or your capcut brand kit, so captions may look a bit different from the mp4, and some sounds get swapped for the closest one in capcut's library
+
 to turn it on, you add capcut's connector to claude code once. in terminal:
 
 ```bash
@@ -76,6 +82,14 @@ claude mcp add --transport http --scope user capcut_creation https://www.capcut.
 ```
 
 then log in to capcut: type `claude` in terminal, then `/mcp`, pick `capcut_creation` and sign in with your capcut account in the browser. the rest of the setup (capcut's helper scripts and fonts) is in [`skills/reel-editor/references/capcut.md`](skills/reel-editor/references/capcut.md), or paste "set up the optional capcut route for the reel editor" into claude code and it walks you through it.
+
+## where your footage goes and what costs extra
+
+- **transcription:** runs on your computer with whisper by default, free. if you add an elevenlabs key (optional, for tighter caption timing), your clip's audio is sent to elevenlabs and that's billed to your elevenlabs account
+- **the review page:** small low-res previews of your clip, the graphics and the sound checks are uploaded to a private page on your claude.ai account. only you can see it unless you share it
+- **capcut (if you turn it on):** the finished video and caption files are uploaded to your capcut account
+- **rendering:** happens on your own laptop, so it costs time, not money. a draft takes a few minutes, a 4K final takes longer
+- **claude:** the edit uses your normal claude plan, there's nothing extra to pay
 
 ## do i need heygen?
 
@@ -96,7 +110,7 @@ edit them any time, or just tell claude "never use outlined captions again" and 
 - **text animations in capcut:** you add these by hand (select all captions, pick an animation, about 10 seconds).
 - **background music:** not included. add it in capcut or your posting app, where the trending sounds are anyway.
 - **multi-camera edits:** it's built for one person talking to camera.
-- **windows:** should work, untested.
+- **windows and linux:** untested. the scripts are written for a mac.
 
 ## what's in here
 

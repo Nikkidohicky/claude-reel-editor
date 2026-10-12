@@ -217,13 +217,16 @@ function blank() { return { cut: null, restoredFillers: [], restoredPauses: [], 
 
 // ---------- saving, undo ----------
 const pill = (t, err) => { $("#save").textContent = t; $("#save").classList.toggle("err", !!err); $("#retry").hidden = !err; };
+let dirty = false, mine = null;   // dirty: local edits not yet sent; mine: updatedAt of our last write (to spot other writers)
 function queueSave() {
-  clearTimeout(timer); pill("Unsaved changes…");
+  clearTimeout(timer); dirty = true; pill("Unsaved changes…");
   timer = setTimeout(saveNow, 600);
 }
 function saveNow() {
   if (!ref) { pill("Not connected: changes won't save", true); return; }
+  dirty = false;
   const body = JSON.parse(JSON.stringify({ ...S, updatedAt: new Date().toISOString() }));
+  mine = body.updatedAt;
   pill("Saving…");
   saving = saving.then(() => ref.set(body)).then(() => pill("Saved " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })),
     e => pill("Couldn't save (" + (e?.code || "error") + ")", true));
@@ -584,6 +587,16 @@ function renderAll() {
     }
     ref = db.doc("review/current");
     const rv = await ref.get(); if (rv.exists) S = { ...blank(), ...JSON.parse(JSON.stringify(rv.data())) };
+    // someone else (Claude, another tab) changed the decisions: take theirs instead of saving a stale copy over it
+    ref.onSnapshot(s => {
+      if (!s.exists || !R) return;
+      const d = s.data(); if (d.updatedAt === mine || dirty) return;
+      if (JSON.stringify(d) === JSON.stringify({ ...S })) return;
+      S = { ...blank(), ...JSON.parse(JSON.stringify(d)) }; undo = []; $("#undo").disabled = true;
+      recompute(); renderAll(); setPos(pos); pill("Updated by Claude");
+    }, () => {});
+    let firstReel = true;
+    db.doc("reel/current").onSnapshot(() => { if (firstReel) { firstReel = false; return; } pill("Claude loaded new footage: reload the page", true); }, () => {});
     db.doc("builds/latest").onSnapshot(s => { B = s.exists ? s.data() : null; if (R) renderPreview(); if (tab === "preview") showTab("preview"); }, () => {});
     recompute();
     $("#reelname").textContent = `${R.title} · raw ${fmt(R.srcDur)} → reel ${fmt(P.cutDur)}`; setPos(0);

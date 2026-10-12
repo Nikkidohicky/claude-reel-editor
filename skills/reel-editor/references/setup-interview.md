@@ -23,9 +23,10 @@ Runs once, before the first edit. Output: `~/reels/brand.md` (for people and for
    - full-sentence subtitles
    Then: highlight colour for key words? Lowercase or sentence case? Any outlines or boxes (many creators now avoid them)?
 7. **Graphics energy.** Clean and minimal / playful and scrapbook / bold and editorial. Ask if they have stickers, logos or brand images in a folder.
+7a. **How many graphics?** Minimal (one every 8-12 s, mostly you on camera) / balanced (every 4-6 s, the default) / busy (every 2-4 s). → `"graphics": "minimal" | "balanced" | "busy"`.
 8. **Sound effects.** None / subtle (a whoosh at cuts) / lots (pops, snaps, dings).
 9a. **Carousel.** "Do you want a carousel (a spinning row of images/screenshots) in every reel?" Yes → `"require_carousel": true`.
-9. **Pacing.** Keep it natural (1.0x) / a bit snappier (1.1x, the default) / fast (1.2x). Cut all "um"s and "like"s?
+9. **Pacing.** Natural (normal speed, only long pauses and clear "um"s go; the default) / tight (1.1x, most pauses go) / fast (1.15x, every gap goes). → `"pacing"`. Then: "Any filler words you want kept, or extra ones to cut, like 'like' or 'so'?" (single words only) Only if they change the list, set `"fillers"` (an empty list keeps every filler).
 10. **Your usual call to action.** e.g. "comment GUIDE and I'll send it", "follow for part 2". Always at the end?
 11. **Where do you post?** Instagram / TikTok / YouTube Shorts / all.
 12. **CapCut.** "Do you want an editable CapCut version too, so you can tweak captions and sounds yourself?" If yes, explain plainly: it needs a free CapCut account, and the connector currently doesn't work from the United States, and the CapCut app is not available in India. If they're in either place, set `"capcut": false` and reassure them the MP4 route gives the same finished reel.
@@ -63,7 +64,7 @@ Runs once, before the first edit. Output: `~/reels/brand.md` (for people and for
 <none / subtle / lots, favourites>
 
 ## Pacing
-<speed, filler rule, max length>
+<natural / tight / fast, filler rule, max length>
 
 ## Call to action
 <their usual CTA>, always at the end
@@ -78,7 +79,8 @@ Runs once, before the first edit. Output: `~/reels/brand.md` (for people and for
 {
   "name": "Sam",
   "resolution": [1080, 1920],
-  "speed": 1.1,
+  "pacing": "natural",
+  "graphics": "balanced",
   "max_seconds": 60,
   "colors": { "main": "#1A1A1A", "pop": "#FF5A36", "light": "#FFF6EE", "caption": "#FFFFFF", "caption_accent": "#FF5A36" },
   "capcut": false,

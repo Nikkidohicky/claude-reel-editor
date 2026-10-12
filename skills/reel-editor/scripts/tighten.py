@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Tighten an approved rough cut: remove every um/uh and every pause longer than 0.2 s inside the kept spans.
+"""Tighten an approved rough cut: remove fillers and shorten pauses inside the kept spans, as hard as brand.json "pacing" says (scripts/pacing.py).
 Run after the person approves edl.json, before cut.py. Rewrites edl.json (the original is kept as edl_rough.json).
 Usage: python3 tighten.py <reel-folder>
 
 How: Whisper normally hides fillers inside neighbouring words, so it is re-run with a prompt full of "um, uh",
-which makes it write them down. Pauses come from silencedetect on the cleaned voice. Every cut edge keeps 60 ms of
-air so words never clip."""
+which makes it write them down. Pauses come from silencedetect on the cleaned voice. Every cut edge keeps the preset's
+air (50-150 ms) so words never clip."""
 import json, os, re, shutil, subprocess, sys
 from pathlib import Path
 
 reel = Path(sys.argv[1]).expanduser()
 edl = json.load(open(reel / "edl.json"))
 voice = reel / edl.get("audio", "voice.wav")
-PAD, MIN_PAUSE = 0.06, 0.20
-FILLERS = {"um", "uh", "umm", "uhm", "erm", "er", "ah", "hmm", "mm"}
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pacing import pacing
+P_ = pacing(json.load(open(Path(os.environ.get("REELS_HOME", "~/reels")).expanduser() / "brand.json")))
+PAD, MIN_PAUSE = P_["air"], P_["pause_min"]
+FILLERS = set(P_["fillers"])
 
 # 1. fillers, via Whisper with a filler-heavy prompt
 cuts = []
