@@ -4,7 +4,7 @@ A private page on the person's claude.ai account where they approve the edit bef
 
 ## One time per reel
 
-1. After transcribing and cleaning audio, write `proposal.json` in the reel folder (format in the header of `scripts/review_sync.py`): the kept lines, accent words, and every graphic anchored to a spoken word with its `place` box and sound.
+1. After transcribing and cleaning audio, run `python3 scripts/tighten.py <reel> --detect` so the "um"s are found (it writes `fillers.json`; without it the page shows no grey "um"s and none get cut). Then write `proposal.json` in the reel folder (format in the header of `scripts/review_sync.py`): the kept lines, accent words, and every graphic anchored to a spoken word with its `place` box and sound.
 2. `python3 scripts/review_sync.py export <reel> proposal.json <out>` → `<out>/reel.json` (also saved as `<reel>/review_reel.json`).
 3. Make the assets (keep them light, `nice -n 15`):
    - a 540x960 source proxy of `raw.mov` with the **cleaned** `voice.wav` as its audio (h264, ~900 kbps). The raw phone audio is ~20 dB quieter, so a proxy with it makes the voice sound broken
@@ -26,4 +26,4 @@ A private page on the person's claude.ai account where they approve the edit bef
 
 ## Final
 
-After they approve the draft: `bash scripts/render.sh <reel> --final` (4K), QA, deliver, and on the CapCut route `--capcut` plus `capcut_draft.py`.
+After they approve the draft: `bash scripts/render.sh <reel> --final` (the brand resolution; it re-cuts the 1080p preview master first), QA, deliver, and on the CapCut route `--capcut` plus `capcut_draft.py`.

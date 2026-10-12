@@ -120,6 +120,8 @@ if any line has a ❌, copy the whole message, paste it back to claude and say "
    - **sound & colour:** listen to your voice before and after, and switch off any sound effect you don't like.
 
    everything saves as you go, and **undo** is there if you change your mind.
+
+   **no review page link?** if your claude code doesn't have artifacts yet, claude does the review with you in chat instead. it shows your transcript as numbered lines with the cuts it suggests, then the graphics it plans. reply with the line numbers to keep or cut and what to change, and say yes when you're happy. that replaces steps 5 and 6.
 6. **make the preview. this takes two clicks in two places:**
    1. on the review page, click **build preview**.
    2. go back to claude code and type **build preview**, then press **return**.
@@ -132,7 +134,7 @@ from your second reel on, it's just steps 7.1 to 7.3, then 7.5 to 7.8. your bran
 
 ## want the capcut version too? (optional)
 
-capcut gives you an editable version where every caption and sound effect is its own layer, so you can tweak anything after.
+capcut gives you an editable version where every caption and sound effect is its own layer, so you can change those yourself after. the graphics, screenshots and hook title come baked into the video, so change those on the review page before you build.
 
 **check this first:** it doesn't work in the us (capcut's connector isn't available there yet) or india (the capcut app isn't available). everywhere else it usually works. if you're in either place, skip this, you'll still get the full finished reel.
 

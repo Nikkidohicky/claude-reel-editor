@@ -2,6 +2,7 @@
 """Tighten an approved rough cut: remove fillers and shorten pauses inside the kept spans, as hard as brand.json "pacing" says (scripts/pacing.py).
 Run after the person approves edl.json, before cut.py. Rewrites edl.json (the original is kept as edl_rough.json).
 Usage: python3 tighten.py <reel-folder>
+       python3 tighten.py <reel-folder> --detect   only find the fillers (writes fillers.json); run before the review page
 
 How: Whisper normally hides fillers inside neighbouring words, so it is re-run with a prompt full of "um, uh",
 which makes it write them down. Pauses come from silencedetect on the cleaned voice. Every cut edge keeps the preset's
@@ -10,7 +11,8 @@ import json, os, re, shutil, subprocess, sys
 from pathlib import Path
 
 reel = Path(sys.argv[1]).expanduser()
-edl = json.load(open(reel / "edl.json"))
+DETECT = "--detect" in sys.argv[2:]
+edl = {} if DETECT else json.load(open(reel / "edl.json"))
 voice = reel / edl.get("audio", "voice.wav")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from pacing import pacing
@@ -36,6 +38,7 @@ if cli and model:
     print(f"fillers found: {len(cuts)}", [round(a, 1) for a, _ in cuts])
 else:
     print("whisper-cli or model not found: removing pauses only (fillers stay)")
+if DETECT: sys.exit(0)
 
 # 2. pauses, via silencedetect on the cleaned voice. The threshold sits just above THIS clip's background noise
 #    (outdoor or noisy rooms never reach a fixed -40 dB, so a fixed threshold finds nothing).
