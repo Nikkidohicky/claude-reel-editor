@@ -121,7 +121,7 @@ if any line has a ❌, copy the whole message, paste it back to claude and say "
 
    everything saves as you go, and **undo** is there if you change your mind.
 
-   **no review page link?** if your claude code doesn't have artifacts yet, claude does the review with you in chat instead. it shows your transcript as numbered lines with the cuts it suggests, then the graphics it plans. reply with the line numbers to keep or cut and what to change, and say yes when you're happy. that replaces steps 5 and 6.
+   **no review page link?** if your claude code doesn't have artifacts yet, claude does the review with you in chat instead. it shows your transcript as numbered lines with the cuts it suggests, then the graphics it plans. reply with the line numbers to keep or cut and what to change, and say yes when you're happy. claude then builds the draft and tells you where the video is on your mac. watch it, and tell claude in chat what to change, with the time it happens (for example "at 0:12 the caption covers my face"). that replaces steps 5 to 7.
 6. **make the preview. this takes two clicks in two places:**
    1. on the review page, click **build preview**.
    2. go back to claude code and type **build preview**, then press **return**.
