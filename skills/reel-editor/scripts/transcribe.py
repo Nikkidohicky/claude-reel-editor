@@ -46,7 +46,7 @@ if k:
     print(f"transcribed with ElevenLabs {model}: {len(words)} words")
 else:
     d = out.parent / (out.stem + "_whisper")
-    subprocess.run(["npx", "-y", "hyperframes", "transcribe", str(src), "-d", str(d), "--json", "--model", "small.en"], capture_output=True, check=True)
+    subprocess.run(["npx", "-y", "hyperframes@0.8.145", "transcribe", str(src), "-d", str(d), "--json", "--model", "small.en"], capture_output=True, check=True)
     words = json.load(open(d / "transcript.json"))
     print(f"transcribed with local Whisper (no ElevenLabs key): {len(words)} words - timing can drift ~0.3 s")
 json.dump(words, open(out, "w"))
