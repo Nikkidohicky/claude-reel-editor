@@ -30,7 +30,7 @@ cli, model = find_whisper()
 if not (cli and model):   # fresh install (or the ElevenLabs route): HyperFrames' transcriber downloads whisper-cli + the model
     print("local Whisper not installed yet: installing it (one time, a few minutes)")
     try:
-        subprocess.run(["npx", "-y", "hyperframes", "transcribe", str(voice), "-d", str(reel / "_whisper_setup"), "--json", "--model", "small.en"],
+        subprocess.run(["npx", "-y", "hyperframes@0.8.145", "transcribe", str(voice), "-d", str(reel / "_whisper_setup"), "--json", "--model", "small.en"],
                        capture_output=True)
     except OSError as e:
         print("couldn't install Whisper:", e)
